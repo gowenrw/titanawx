@@ -7,7 +7,7 @@
 servers=[
   {
     :hostname => "titanawx-focal",
-    :log => "console-phoenix-alpha.log",
+    :log => "console-titanawx-focal.log",
     :ip => "192.168.65.11",
     :box => "ubuntu-2004-server-amd64",
     :boxurl => "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64-vagrant.box",
@@ -15,19 +15,31 @@ servers=[
     :vram => 16,
     :cpu => 3,
     :fwdguest => 30080,
-    :fwdhost => 30080,
+    :fwdhost => 30081,
+  },
+  {
+    :hostname => "titantst",
+    :log => "console-titantst.log",
+    :ip => "192.168.65.12",
+    :box => "ubuntu-2004-server-amd64",
+    :boxurl => "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64-vagrant.box",
+    :ram => 2048,
+    :vram => 16,
+    :cpu => 1,
+    :fwdguest => 80,
+    :fwdhost => 8082,
   },
   {
     :hostname => "titanawx-cent8",
-    :log => "console-phoenix-charlie.log",
-    :ip => "192.168.65.12",
+    :log => "console-titanawx-cent8.log",
+    :ip => "192.168.65.13",
     :box => "centos/8",
     :boxurl => "https://cloud.centos.org/centos/8/vagrant/x86_64/images/CentOS-8-Vagrant-8.4.2105-20210603.0.x86_64.vagrant-virtualbox.box",
     :ram => 8192,
     :vram => 16,
     :cpu => 3,
-    :fwdguest => 8080,
-    :fwdhost => 8082,
+    :fwdguest => 30080,
+    :fwdhost => 30083,
   }
 ]
 #

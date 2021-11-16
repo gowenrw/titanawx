@@ -1,11 +1,16 @@
 # AWX Operator
 
-This is the new way AWX wants to install for x18+
+This is the new way AWX wants to install for x18+ using AWX operator and k8s
 
-I could not get this to work on Ubuntu no matter what I tried
+I could not get this to work on Ubuntu no matter what I tried so I tried the
+older AWX 17 and eventually got that to work.
 
-Giving up and installing AWX 17 but keeping these notes for future reference
+However, I realized that the earlier issues I was having were related to
+API template issues in the latest version of k8s.
 
+So fixed that and continued with latest version of AWX.
+
+Keeping these notes in case they are helpful later.
 
 ## Ubuntu focal setup
 

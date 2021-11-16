@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  remote_user: vagrant
+  roles:
+    - titan_awx

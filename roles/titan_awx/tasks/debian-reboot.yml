@@ -1,0 +1,43 @@
+---
+# tasks file for base - debian systems - reboot tasks
+
+#
+# Check for reboot
+- name: Check if a reboot is required
+  register: file
+  stat: path=/var/run/reboot-required get_md5=no
+  changed_when: False
+  become: yes
+- debug: msg="Reboot Required"
+  when: file.stat.exists == true
+  changed_when: False
+#
+# Reboot
+- name: Reboot the server if needed
+  reboot:
+  when: file.stat.exists == true
+  become: yes
+#
+# Check for mount
+- name: Check if vagrant-vbox shared folder is mounted after reboot
+  shell: mount | grep vagrant
+  args:
+    warn: False
+  register: vagrantfolder
+  failed_when: vagrantfolder.stderr != ""
+  changed_when: False
+  become: yes
+#- debug: msg="Yes {{ vagrantfolder.stdout }}"
+#  when: vagrantfolder.stdout != ""
+#  changed_when: False
+- debug: msg="NO - Remount Required"
+  when: vagrantfolder.stdout == ""
+  changed_when: False
+#
+# Remount
+- name: Remount vagrant-vbox shared folder if needed
+  shell: mount -t vboxsf vagrant /vagrant/ -o uid=vagrant,gid=vagrant,dmode=700,fmode=700
+  args:
+    warn: False
+  when: vagrantfolder.stdout == ""
+  become: yes

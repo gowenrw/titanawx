@@ -1,0 +1,5 @@
+---
+- hosts: titanawx_focal
+  remote_user: vagrant
+  roles:
+    - titan_awx

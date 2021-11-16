@@ -1,6 +1,10 @@
-# AWX Ubuntu focal installation notes
+# AWX on Ubuntu focal installation notes
 
-This is my attempt to install AWX on Ubuntu
+These are my notes from manual installation of AWX using AWX operator and k8s.
+
+I have noted where we need to use an older version of kubernetes software.
+This is because a change they made to the k8s API in the latest version
+conflicts with an AWX operator function making installation fail.
 
 ## Basics and Prerequisites
 
@@ -277,7 +281,7 @@ http://192.168.65.11:30080/
 
 This will provide you a login page.
 
-Credentials:
+Credentials Example:
 admin
 ogzO316ZuSe9ts5I8UEMl00NX6h1Uk2m
 

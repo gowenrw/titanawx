@@ -54,3 +54,4 @@ boxes/*
 #################
 *.ppk
 *.pem
+*.private_key

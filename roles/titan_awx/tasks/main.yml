@@ -1,0 +1,15 @@
+---
+# tasks file for role
+
+#
+# Installation Tasks for debian based systems
+- include_tasks: debian.yml
+  when: ansible_os_family == 'Debian'
+
+#
+# Kubernetes Installation Tasks
+- include_tasks: kubernetes.yml
+
+#
+# AWX Tasks
+- include_tasks: awx.yml

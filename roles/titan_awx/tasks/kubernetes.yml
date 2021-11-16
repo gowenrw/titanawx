@@ -1,0 +1,52 @@
+---
+# tasks file for kubernetes install
+
+# Install kubectl
+- stat: path="/usr/local/bin/kubectl"
+  register: kubectlinstalled
+- name: Download kubectl v1.20.12 using get_url
+  become: yes
+  get_url:
+    url: https://dl.k8s.io/release/v1.20.12/bin/linux/amd64/kubectl
+    dest: /usr/local/bin/kubectl
+    mode: 0755
+    group: root
+    owner: root
+  when: not kubectlinstalled.stat.exists
+
+# Install minikube
+- stat: path="/usr/local/bin/minikube"
+  register: minikubeinstalled
+- name: Download minikube v1.21.0 using get_url
+  become: yes
+  get_url:
+    url: https://github.com/kubernetes/minikube/releases/download/v1.21.0/minikube-linux-amd64
+    dest: /usr/local/bin/minikube
+    mode: 0755
+    group: root
+    owner: root
+  when: not minikubeinstalled.stat.exists
+
+# Install minikube Service
+- stat: path="/etc/systemd/system/minikube.service"
+  register: minikubeservicefile
+- name: Create minikube service from template if needed
+  template: src="minikube.service.j2" dest="/etc/systemd/system/minikube.service" owner="root" group="root" mode="0644"
+  when: not minikubeservicefile.stat.exists
+  become: yes
+
+# Start minikube Service if needed
+- name: Enable the minikube service in systemd - This step will take a few minutes on first run
+  systemd:
+    daemon_reload: yes
+    name: minikube.service
+    enabled: yes
+    state: started
+  become: yes
+
+# At the end of this task list minikube should be running
+# If you log in as the ansuble user (not root) you can see the status with these:
+# kubectl get pods -A
+# kubectl get nodes
+# kubectl version --short
+#

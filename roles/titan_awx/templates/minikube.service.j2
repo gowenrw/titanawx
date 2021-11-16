@@ -1,0 +1,14 @@
+[Unit]
+Description=minikube service
+
+[Service]
+Type=oneshot
+User={{ ansible_user }}
+Group=docker
+RemainAfterExit=true
+WorkingDirectory=/home/{{ ansible_user }}
+ExecStart=/usr/local/bin/minikube start --addons=ingress --cpus=3 --cni=flannel --install-addons=true \ --kubernetes-version=stable --memory=6g --wait=false
+ExecStop=/usr/local/bin/minikube stop
+
+[Install]
+WantedBy=multi-user.target

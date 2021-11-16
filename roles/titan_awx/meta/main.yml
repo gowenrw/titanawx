@@ -1,0 +1,11 @@
+galaxy_info:
+  role_name: titan_awx
+  author: alt_bier
+  description: Installation and configuration of AWX and its dependencies on an Ubuntu focal development system
+  company: Fellowship of the Ring
+  license: MIT
+  min_ansible_version: 2.9
+  galaxy_tags: []
+dependencies: []
+collections:
+- community.kubernetes

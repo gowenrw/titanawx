@@ -1,0 +1,17 @@
+[Unit]
+Description=AWX Titan Exposed Service
+Wants=minikube.service
+After=network.target minikube.service
+
+[Service]
+Type=simple
+User={{ ansible_ssh_user }}
+Group={{ ansible_ssh_user }}
+WorkingDirectory=/home/{{ ansible_ssh_user }}
+RemainAfterExit=true
+PIDFile=/home/{{ ansible_ssh_user }}/awxtitanexposed.service.%H.pid
+ExecStart=/usr/local/bin/kubectl -n awx port-forward service/awx-titan-service 30080:80 --address='0.0.0.0'
+ExecStop=/usr/bin/kill "$MAINPID"
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,24 @@
+# file: titan.inventory
+# Inventory configs for my ansible titan environment
+
+[titanawx_focal]
+192.168.65.11 ansible_ssh_user=vagrant ansible_ssh_private_key_file=./titan.titanawx-focal.private_key
+
+[titantst]
+192.168.65.12 ansible_ssh_user=vagrant ansible_ssh_private_key_file=./titan.titantst.private_key
+
+[titanawx-cent8]
+192.168.65.13 ansible_ssh_user=vagrant ansible_ssh_private_key_file=./titan.titantst.private_key
+
+# Titan group
+[titan:children]
+titanawx_focal
+titantst
+titanawx-cent8
+
+# Variables that will be applied to all servers
+[titan:vars]
+# prevent errors on first run, only seems to be needed once to record the ssh keys
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+# Need to specify python3 as interpreter in case it is not set
+ansible_python_interpreter=/usr/bin/python3
