@@ -61,9 +61,9 @@
     src: /home/{{ ansible_user }}/awx-operator/awx-titan.yml
     namespace: awx
   when: awxtitandeploy.stdout == "FALSE"
-- name: Pause for 1 minute to allow AWX Titan to finish deploying
+- name: Pause for 2 minutes to allow AWX Titan to finish deploying
   pause:
-    minutes: 1
+    minutes: 2
   when: awxtitandeploy.stdout == "FALSE"
 
 # Get the AWS web link and credentials
