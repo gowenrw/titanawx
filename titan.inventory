@@ -7,14 +7,14 @@
 [titantst]
 192.168.65.12 ansible_ssh_user=vagrant ansible_ssh_private_key_file=./titan.titantst.private_key
 
-[titanawx-cent8]
+[titanawx_cent8]
 192.168.65.13 ansible_ssh_user=vagrant ansible_ssh_private_key_file=./titan.titantst.private_key
 
 # Titan group
 [titan:children]
 titanawx_focal
 titantst
-titanawx-cent8
+titanawx_cent8
 
 # Variables that will be applied to all servers
 [titan:vars]

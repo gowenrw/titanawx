@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Check if awx-operator-controller-manager pod exists
+# Return value if it does or FALSE if it doesn't
+
+TEST=$(kubectl get svc -A | grep -o awx-titan-service)
+if [ -z $TEST ]
+then
+  echo FALSE; exit
+elif [ $TEST == "awx-titan-service" ]
+then
+  echo ${TEST}
+else
+  echo FALSE
+fi

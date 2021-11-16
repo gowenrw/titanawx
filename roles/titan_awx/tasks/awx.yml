@@ -10,6 +10,15 @@
     dest: /home/{{ ansible_user }}/awx-operator
     version: "0.14.0"
   when: not awxoperatordir.stat.exists
+- name: Create operator deploy check script from template if needed
+  template: src="check_awxoperatordeploy.sh.j2" dest="/home/{{ ansible_user }}/awx-operator/check_awxoperatordeploy.sh" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0755"
+  when: not awxoperatordir.stat.exists
+- name: Create awx deploy check script from template if needed
+  template: src="check_awxtitandeploy.sh.j2" dest="/home/{{ ansible_user }}/awx-operator/check_awxtitandeploy.sh" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0755"
+  when: not awxoperatordir.stat.exists
+- name: Create awx service check script from template if needed
+  template: src="check_awxtitansvc.sh.j2" dest="/home/{{ ansible_user }}/awx-operator/check_awxtitansvc.sh" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0755"
+  when: not awxoperatordir.stat.exists
 
 # Create k8s namespace for AWX
 - name: Create a k8s namespace for AWX
@@ -21,14 +30,14 @@
 
 # Deploy AWX operator if needed
 - name: Check if awx-operator is running
-  shell: 'kubectl get pods -A | grep -o awx-operator-controller-manager'
+  command: /home/{{ ansible_user }}/awx-operator/check_awxoperatordeploy.sh
   register: awxoperatordeploy
   changed_when: False
 - name: Make 'deploy' target in awx-operator if necessary
   make:
     chdir: /home/{{ ansible_user }}/awx-operator
     target: deploy
-  when: awxoperatordeploy.stdout == ""
+  when: awxoperatordeploy.stdout == "FALSE"
 
 # At this point the awx-operator pod should be running in namespace awx
 # We can check on the host with this command
@@ -43,7 +52,7 @@
 
 # AWX titan deployment if needed
 - name: Check if awx-titan is running
-  shell: 'kubectl get pods -A | grep -o awx-titan'
+  command: /home/{{ ansible_user }}/awx-operator/check_awxtitandeploy.sh
   register: awxtitandeploy
   changed_when: False
 - name: Create AWX Titan Deployment by reading the definition file
@@ -51,26 +60,26 @@
     state: present
     src: /home/{{ ansible_user }}/awx-operator/awx-titan.yml
     namespace: awx
-  when: awxtitandeploy.stdout == ""
+  when: awxtitandeploy.stdout == "FALSE"
 - name: Pause for 1 minute to allow AWX Titan to finish deploying
   pause:
     minutes: 1
-  when: awxtitandeploy.stdout == ""
+  when: awxtitandeploy.stdout == "FALSE"
 
 # Get the AWS web link and credentials
 - name: Get the password used by the awx-titan web
-  shell: 'kubectl get secret awx-titan-admin-password -n awx -o jsonpath="{.data.password}" | base64 --decode'
+  shell: "kubectl get secret awx-titan-admin-password -n awx -o jsonpath='{.data.password}' | base64 --decode"
   register: awxtitansecret
   changed_when: False
 
 # Expose the AWX Titan web portal page using a service and port-forward
 - name: Check if awx-titan-service is running
-  shell: 'kubectl get svc -A | grep -o awx-titan-service'
+  command: /home/{{ ansible_user }}/awx-operator/check_awxtitansvc.sh
   register: awxtitansvc
   changed_when: False
 - name: Start the awx-titan-service internal minikube service
   shell: 'minikube service awx-titan-service --url -n awx'
-  when: awxtitansvc.stdout == ""
+  when: awxtitansvc.stdout == "FALSE"
 
 # Install awxtitanexpose Service
 - stat: path="/etc/systemd/system/awxtitanexpose.service"
@@ -98,7 +107,7 @@
 - name: Display AWX Titan Login Details
   vars:
     msg: |
-         Connect to Titan AWX with these details          
+         Connect to Titan AWX with these details
          {{ awx_titan_url }}
          {{ awx_titan_usr }}
          {{ awx_titan_sec }}
