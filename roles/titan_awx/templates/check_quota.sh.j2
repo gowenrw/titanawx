@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Check the AWX namespace quota limits and current usage
+# Added here for laziness since i always forget the 'resourcequota' tag
+
+echo "kubectl get resourcequota mem-cpu-quota --namespace={{ awx_namespace }} --output=yaml"
+kubectl get resourcequota mem-cpu-quota --namespace={{ awx_namespace }} --output=yaml

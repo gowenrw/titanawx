@@ -24,14 +24,16 @@ This worked perfectly.
 
 Having a working manual install I decided to write the automation code to allow this AWX test system to be implemented using ansible.
 
+In my first attempt I used minikube like I did for the manual install but found some issue with persistence.  So I switched to using the k3s lightweight kubernetes to resolve these.
+
 ### Ansible role "titan_awx"
 
-I created the ansible role "titan_awx" for the purpose of installing the latest version of AWX on an Ubuntu focal 20.04 server the same way I did manually.
+I created the ansible role "titan_awx" for the purpose of installing the latest version of AWX on an Ubuntu focal 20.04 server.
 
 This role does not stand up the Ubuntu server, it just installs on an already provisioned server.
 
-This installation of AWX requires a minimum of 3vCPU's and 6GB RAM.
-My test system had 3 CPUs and 8GB of RAM.
+This installation of AWX requires a minimum of 4 CPU's and 8GB RAM and 20GB of available storage.
+My test system had 4 CPUs and 8GB of RAM and worked fine.
 
 This role uses the Ansible Kubernetes Collection.
 
@@ -52,4 +54,5 @@ I created the following files to help implement AWX using ansible.
 * titan.playbook.yml - the ansible playbook that calls the "titan_awx" role
 * titan.inventory - the ansible inventory file I use with the playbook
 * titan.run_playbook.sh - a bash script for installing collection and running the playbook
+* titan.test.sh - a bash script for testing the inventory file using ansible ping
 * xcodecopy.sh - a bash script that copies this code from within a local ansible control box

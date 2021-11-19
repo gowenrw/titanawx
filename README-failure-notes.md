@@ -8,7 +8,7 @@ older AWX 17 and eventually got that to work.
 However, I realized that the earlier issues I was having were related to
 API template issues in the latest version of k8s.
 
-So fixed that and continued with latest version of AWX.
+So fixed that by using a previous version of kubernetes and continued with latest version of AWX.
 
 Keeping these notes in case they are helpful later.
 

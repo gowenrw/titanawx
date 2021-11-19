@@ -1,2 +1,11 @@
 ---
 # vars file for role
+
+#k3s_version: v1.22.3+k3s1
+k3s_version: v1.20.12+k3s1
+k3s_server_location: /var/lib/rancher/k3s
+systemd_dir: /etc/systemd/system
+k3s_master_ip: "{{ ansible_ssh_host }}"
+extra_server_args: "--write-kubeconfig-mode 644"
+extra_agent_args: ""
+awx_namespace: awx

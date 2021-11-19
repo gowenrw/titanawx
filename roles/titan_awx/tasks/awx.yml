@@ -1,36 +1,81 @@
 ---
 # tasks file for awx install
 
-# Clone AWX operator if needed
+# Check if AWX files exist
 - stat: path="/home/{{ ansible_user }}/awx-operator/"
   register: awxoperatordir
+
+# Clone AWX operator if needed
 - name: Clone the AWX operator Repo specific branch 0.14.0
   git:
     repo: https://github.com/ansible/awx-operator.git
     dest: /home/{{ ansible_user }}/awx-operator
     version: "0.14.0"
   when: not awxoperatordir.stat.exists
+
+# Create check script files from templates if needed
 - name: Create operator deploy check script from template if needed
-  template: src="check_awxoperatordeploy.sh.j2" dest="/home/{{ ansible_user }}/awx-operator/check_awxoperatordeploy.sh" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0755"
+  template: src="check_awx_op_deploy.sh.j2" dest="/home/{{ ansible_user }}/awx-operator/check_awx_op_deploy.sh" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0755"
   when: not awxoperatordir.stat.exists
 - name: Create awx deploy check script from template if needed
-  template: src="check_awxtitandeploy.sh.j2" dest="/home/{{ ansible_user }}/awx-operator/check_awxtitandeploy.sh" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0755"
+  template: src="check_awx_titan_deploy.sh.j2" dest="/home/{{ ansible_user }}/awx-operator/check_awx_titan_deploy.sh" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0755"
   when: not awxoperatordir.stat.exists
 - name: Create awx service check script from template if needed
-  template: src="check_awxtitansvc.sh.j2" dest="/home/{{ ansible_user }}/awx-operator/check_awxtitansvc.sh" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0755"
+  template: src="check_awx_titan_svc.sh.j2" dest="/home/{{ ansible_user }}/awx-operator/check_awx_titan_svc.sh" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0755"
   when: not awxoperatordir.stat.exists
+#- name: Create quota check script from template if needed
+#  template: src="check_quota.sh.j2" dest="/home/{{ ansible_user }}/awx-operator/check_quota.sh" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0755"
+#  when: not awxoperatordir.stat.exists
+
+# Create AXW titan deployment file from template if needed
+- name: Create AWX titan deployment file from template if needed
+  template: src="awx-titan.yml.j2" dest="/home/{{ ansible_user }}/awx-operator/awx-titan.yml" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0644"
+  when: not awxoperatordir.stat.exists
+
+# Create k3s namespace quota file from template if needed - NOT WORKING RIGHT YET
+#- name: Create k3s namespace quota file from template if needed
+#  template: src="awx-namespace-quota.yml.j2" dest="/home/{{ ansible_user }}/awx-operator/awx-namespace-quota.yml" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0644"
+#  when: not awxoperatordir.stat.exists
 
 # Create k8s namespace for AWX
 - name: Create a k8s namespace for AWX
   community.kubernetes.k8s:
-    name: awx
+    name: "{{ awx_namespace }}"
     api_version: v1
     kind: Namespace
     state: present
 
+# Create k8s persistent storage for AWX
+- name: Create a k8s persistent volume claim for AWX
+  community.kubernetes.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: static-data-pvc
+        namespace: "{{ awx_namespace }}"
+      spec:
+        storageClassName: local-path
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+
+# Create CPU and MEM Limits for the awx namespace - NOT WORKING RIGHT YET
+#- name: "Create CPU / MEM Limits for namespace {{ awx_namespace }} by reading quota file"
+#  community.kubernetes.k8s:
+#    src: /home/{{ ansible_user }}/awx-operator/awx-namespace-quota.yml
+#    namespace: "{{ awx_namespace }}"
+#    state: present
+
+# To check your quota limits and current used resources you can use this in the cli
+# kubectl get resourcequota mem-cpu-quota --namespace=awx --output=yaml
+
 # Deploy AWX operator if needed
 - name: Check if awx-operator is running
-  command: /home/{{ ansible_user }}/awx-operator/check_awxoperatordeploy.sh
+  command: /home/{{ ansible_user }}/awx-operator/check_awx_op_deploy.sh
   register: awxoperatordeploy
   changed_when: False
 - name: Make 'deploy' target in awx-operator if necessary
@@ -43,16 +88,9 @@
 # We can check on the host with this command
 # kubectl get pods -n awx
 
-# AXW app file
-- stat: path="/home/{{ ansible_user }}/awx-operator/awx-titan.yml"
-  register: awxappfile
-- name: Create AWX app file from template if needed
-  template: src="awx-titan.yml.j2" dest="/home/{{ ansible_user }}/awx-operator/awx-titan.yml" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0644"
-  when: not awxappfile.stat.exists
-
 # AWX titan deployment if needed
 - name: Check if awx-titan is running
-  command: /home/{{ ansible_user }}/awx-operator/check_awxtitandeploy.sh
+  command: /home/{{ ansible_user }}/awx-operator/check_awx_titan_deploy.sh
   register: awxtitandeploy
   changed_when: False
 - name: Create AWX Titan Deployment by reading the definition file
@@ -66,51 +104,56 @@
     minutes: 2
   when: awxtitandeploy.stdout == "FALSE"
 
-# Get the AWS web link and credentials
+# Get the AWX credentials
 - name: Get the password used by the awx-titan web
   shell: "kubectl get secret awx-titan-admin-password -n awx -o jsonpath='{.data.password}' | base64 --decode"
   register: awxtitansecret
   changed_when: False
 
-# Expose the AWX Titan web portal page using a service and port-forward
-- name: Check if awx-titan-service is running
-  command: /home/{{ ansible_user }}/awx-operator/check_awxtitansvc.sh
-  register: awxtitansvc
-  changed_when: False
-- name: Start the awx-titan-service internal minikube service
-  shell: 'minikube service awx-titan-service --url -n awx'
-  when: awxtitansvc.stdout == "FALSE"
-
-# Install awxtitanexpose Service
-- stat: path="/etc/systemd/system/awxtitanexpose.service"
-  register: awxtitanexposeservicefile
-- name: Create awxtitanexpose service from template if needed
-  template: src="awxtitanexpose.service.j2" dest="/etc/systemd/system/awxtitanexpose.service" owner="root" group="root" mode="0644"
-  when: not awxtitanexposeservicefile.stat.exists
+# Create awxtitan systemd service to expose service via port-forward on 0.0.0.0
+- stat: path="/etc/systemd/system/awxtit.service"
+  register: awxtitanservicefile
+- name: Create awxtitan systemd service from template if needed
+  template: src="awxtitan.service.j2" dest="/etc/systemd/system/awxtitan.service" owner="root" group="root" mode="0644"
+  when: not awxtitanservicefile.stat.exists
   become: yes
 
 # Start awxtitanexpose Service if needed
-- name: Enable the awxtitanexpose service in systemd
+- name: Enable the awxtitan service in systemd
   systemd:
     daemon_reload: yes
-    name: awxtitanexpose.service
+    name: awxtitan.service
     enabled: yes
     state: started
   become: yes
 
-- name: Compile AWX Titan Login Details
+- name: Pause for 1 minute to allow AWX Titan services to finish
+  pause:
+    minutes: 1
+  when: not awxtitanservicefile.stat.exists
+
+- name: Compile AWX Titan Access Details
   set_fact:
     awx_titan_url: "   TitanAWX:  http://{{ ansible_ssh_host }}:30080/        "
     awx_titan_usr: "   Username:  admin                              "
     awx_titan_sec: "   Password:  {{ awxtitansecret.stdout }}   "
 
-- name: Display AWX Titan Login Details
+- name: Save AWX Titan Access Details
+  template: src="AWX_ACCESS_DETAILS.md.j2" dest="/home/{{ ansible_user }}/awx-operator/AWX_ACCESS_DETAILS.md" owner="{{ ansible_user }}" group="{{ ansible_user }}" mode="0644"
+
+- name: Display AWX Titan Access Details
   vars:
     msg: |
          Connect to Titan AWX with these details
          {{ awx_titan_url }}
          {{ awx_titan_usr }}
          {{ awx_titan_sec }}
+
+         It may take up to five minutes for the port-forward service to sync with the node port.
+         If you cannot connect after five minutes then you can try:
+           - Restart the awxtitan service with 'sudo service awxtitan restart'
+           - Reboot the server and wait until the awxtitan service comes up
+
          Cheers!
   debug:
     msg: "{{ msg.split('\n') }}"

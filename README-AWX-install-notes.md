@@ -1,4 +1,4 @@
-# AWX on Ubuntu focal installation notes
+# AWX on Ubuntu focal manual installation notes
 
 These are my notes from manual installation of AWX using AWX operator and k8s.
 
@@ -295,4 +295,39 @@ kubectl delete pods -l "app.kubernetes.io/managed-by=awx-operator"
 Show information about the cluster
 ```
 kubectl cluster-info
+```
+
+###  Ansible Control Box Notes
+
+#### WSL
+
+If running this from ansible within Windows Subsystem for Linux you will probably hit an error
+about key files being too opened or other issues related to everything showing as 777 perms
+
+I solved it by creating /etc/wsl.conf with the following content:
+```
+# Enable extra metadata options by default
+[automount]
+enabled = true
+root = /mnt/
+options = "metadata,umask=77,fmask=11"
+mountFsTab = false
+```
+
+After making this change run this from an elevated powershell
+```
+Restart-Service -Name "LxssManager"
+```
+
+#### Linux VM
+
+If on a Windows system without the Windows Subsystem for Linux, and given the incompatibilities between WSL2 and VirtualBox who can blame you, you may want another linux VM to be your ansible control box so that ansible is running on a differnt host than the one it is modifying.
+
+For this linux VM you will just need a basic config that can be configured manually.
+
+On Ubuntu you can run these commands to the box setup then reboot and its ready to use:
+```
+sudo apt update && sudo apt -y upgrade
+sudo apt -y install ansible putty-tools python3-pip
+sudo pip install openshift
 ```

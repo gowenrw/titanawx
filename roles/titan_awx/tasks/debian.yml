@@ -109,19 +109,19 @@
 - name: Install jq
   action: apt name=jq state=present update_cache=no
   become: yes
-- name: Install docker.io
-  action: apt name=docker.io state=present update_cache=no
-  become: yes
-- name: Install Docker Python Module via pip
-  pip:
-    name: docker
-  become: yes
-- name: adding existing user {{ ansible_user }} to group docker
-  user:
-    name: "{{ ansible_user }}"
-    groups: docker
-    append: yes
-  become: yes
+#- name: Install docker.io
+#  action: apt name=docker.io state=present update_cache=no
+#  become: yes
+#- name: Install Docker Python Module via pip
+#  pip:
+#    name: docker
+#  become: yes
+#- name: adding existing user {{ ansible_user }} to group docker
+#  user:
+#    name: "{{ ansible_user }}"
+#    groups: docker
+#    append: yes
+#  become: yes
 - name: Install OpenShift Python Module via pip
   pip:
     name: openshift

@@ -13,9 +13,9 @@ servers=[
     :boxurl => "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64-vagrant.box",
     :ram => 8192,
     :vram => 16,
-    :cpu => 3,
-    :fwdguest => 30080,
-    :fwdhost => 30081,
+    :cpu => 4,
+    :fwdguest => 80,
+    :fwdhost => 8081,
   },
   {
     :hostname => "titantst",
@@ -37,9 +37,9 @@ servers=[
     :boxurl => "https://cloud.centos.org/centos/8/vagrant/x86_64/images/CentOS-8-Vagrant-8.4.2105-20210603.0.x86_64.vagrant-virtualbox.box",
     :ram => 8192,
     :vram => 16,
-    :cpu => 3,
-    :fwdguest => 30080,
-    :fwdhost => 30083,
+    :cpu => 4,
+    :fwdguest => 80,
+    :fwdhost => 8083,
   }
 ]
 #

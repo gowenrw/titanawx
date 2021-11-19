@@ -1,52 +1,126 @@
 ---
-# tasks file for kubernetes install
+# tasks file for k3s lightweight kubernetes install
 
-# Install kubectl
-- stat: path="/usr/local/bin/kubectl"
-  register: kubectlinstalled
-- name: Download kubectl v1.20.12 using get_url
-  become: yes
+# Most scripts I've seen to install k3s use this curl line for install:
+# curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={K3s version} bash -
+# I decided to do a traditional install with a systemd service instead
+
+# Download k3s version by architecture
+- stat: path="/usr/local/bin/k3s"
+  register: k3binary
+- name: Download k3s binary x64
   get_url:
-    url: https://dl.k8s.io/release/v1.20.12/bin/linux/amd64/kubectl
-    dest: /usr/local/bin/kubectl
-    mode: 0755
-    group: root
+    url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/k3s
+    checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/sha256sum-amd64.txt
+    dest: /usr/local/bin/k3s
     owner: root
-  when: not kubectlinstalled.stat.exists
-
-# Install minikube
-- stat: path="/usr/local/bin/minikube"
-  register: minikubeinstalled
-- name: Download minikube v1.21.0 using get_url
+    group: root
+    mode: 0755
+  when: ansible_facts.architecture == "x86_64" and (not k3binary.stat.exists)
   become: yes
+- name: Download k3s binary arm64
   get_url:
-    url: https://github.com/kubernetes/minikube/releases/download/v1.21.0/minikube-linux-amd64
-    dest: /usr/local/bin/minikube
-    mode: 0755
-    group: root
+    url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/k3s-arm64
+    checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/sha256sum-arm64.txt
+    dest: /usr/local/bin/k3s
     owner: root
-  when: not minikubeinstalled.stat.exists
-
-# Install minikube Service
-- stat: path="/etc/systemd/system/minikube.service"
-  register: minikubeservicefile
-- name: Create minikube service from template if needed
-  template: src="minikube.service.j2" dest="/etc/systemd/system/minikube.service" owner="root" group="root" mode="0644"
-  when: not minikubeservicefile.stat.exists
+    group: root
+    mode: 0755
+  when:
+    - ( ansible_facts.architecture is search("arm") and
+        ansible_facts.userspace_bits == "64" and (not k3binary.stat.exists) ) or
+      ( ansible_facts.architecture is search("aarch64") and (not k3binary.stat.exists) )
+  become: yes
+- name: Download k3s binary armhf
+  get_url:
+    url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/k3s-armhf
+    checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/sha256sum-arm.txt
+    dest: /usr/local/bin/k3s
+    owner: root
+    group: root
+    mode: 0755
+  when:
+    - ansible_facts.architecture is search("arm")
+    - ansible_facts.userspace_bits == "32"
+    - (not k3binary.stat.exists)
   become: yes
 
-# Start minikube Service if needed
-- name: Enable the minikube service in systemd - This step will take a few minutes on first run
+# Install k3s service file from template
+- stat: path="/etc/systemd/system/k3s.service"
+  register: k3servicefile
+- name: Create k3s service file from template if needed
+  register: k3s_service
+  template:
+    src: "k3s.service.j2"
+    dest: "{{ systemd_dir }}/k3s.service"
+    owner: root
+    group: root
+    mode: 0644
+  when: not k3servicefile.stat.exists
+  become: yes
+
+# Start the k3s service
+- name: Enable and check K3s service
   systemd:
+    name: k3s
     daemon_reload: yes
-    name: minikube.service
+    state: restarted
     enabled: yes
-    state: started
   become: yes
 
-# At the end of this task list minikube should be running
-# If you log in as the ansuble user (not root) you can see the status with these:
-# kubectl get pods -A
-# kubectl get nodes
-# kubectl version --short
-#
+# Service restart might set 0600 perms which prevents local user execution
+# No longer need this, fixed with extra_server_args: "--write-kubeconfig-mode 644"
+#- name: Change file permissions for main k3s config file
+#  file:
+#    path: /etc/rancher/k3s/k3s.yaml
+#    mode: '0644'
+#  become: yes
+
+# Master Node Token - not sure what this is for -lets comment out and see
+- name: Wait for node-token
+  wait_for:
+    path: "{{ k3s_server_location }}/server/node-token"
+  become: yes
+
+# Set server to master IP instead of localhost
+- name: Replace https://localhost:6443 with https://k3s_master-ip:6443 in main config
+  command: >-
+    k3s kubectl config set-cluster default
+      --server=https://{{ k3s_master_ip }}:6443
+  changed_when: true
+  become: yes
+
+# Create User Config Directory
+- name: Create directory .kube
+  file:
+    path: ~{{ ansible_user }}/.kube
+    state: directory
+    owner: "{{ ansible_user }}"
+    mode: "u=rwx,g=rx,o="
+  become: yes
+
+# Copy config file to user home directory
+- name: Copy config file to user home directory
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: ~{{ ansible_user }}/.kube/config
+    remote_src: yes
+    owner: "{{ ansible_user }}"
+    mode: "u=rw,g=r,o=r"
+  become: yes
+
+# Symlink for kubectl
+- name: Create kubectl symlink
+  file:
+    src: /usr/local/bin/k3s
+    dest: /usr/local/bin/kubectl
+    state: link
+  become: yes
+
+# Symlinks for crictl
+- name: Create crictl symlink
+  file:
+    src: /usr/local/bin/k3s
+    dest: /usr/local/bin/crictl
+    state: link
+  become: yes

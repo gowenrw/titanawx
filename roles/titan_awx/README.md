@@ -7,7 +7,8 @@ Requirements
 ------------
 
 Currently only supports Ubuntu focal.
-The server hardware must have a minimum of 3 CPUs and 6GB RAM
+The server hardware must have a minimum of:
+4 CPUs and 8GB RAM and 20GB of available storage.
 
 This role uses the Ansible Kubernetes Collection
 Using v 1.2.1 because of ansible version requirements on focal
@@ -17,7 +18,7 @@ ansible-galaxy collection install -r requirements.yml
 Role Variables
 --------------
 
-None.
+Defined in vars/main.yml
 
 Dependencies
 ------------
