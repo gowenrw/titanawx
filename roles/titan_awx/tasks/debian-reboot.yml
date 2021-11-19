@@ -27,11 +27,12 @@
   failed_when: vagrantfolder.stderr != ""
   changed_when: False
   become: yes
+
 #- debug: msg="Yes {{ vagrantfolder.stdout }}"
 #  when: vagrantfolder.stdout != ""
 #  changed_when: False
 - debug: msg="NO - Remount Required"
-  when: vagrantfolder.stdout == ""
+  when: vagrantfolder.stdout == "" and ansible_user == "vagrant"
   changed_when: False
 #
 # Remount
@@ -39,5 +40,5 @@
   shell: mount -t vboxsf vagrant /vagrant/ -o uid=vagrant,gid=vagrant,dmode=700,fmode=700
   args:
     warn: False
-  when: vagrantfolder.stdout == ""
+  when: vagrantfolder.stdout == "" and ansible_user == "vagrant"
   become: yes

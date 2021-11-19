@@ -1,5 +1,12 @@
 ---
-- hosts: titanawx_focal
+# Uncomment if running against azure server
+- hosts: titanawx_azure
   remote_user: vagrant
   roles:
     - titan_awx
+
+# Uncomment if running against local server
+#- hosts: titanawx_focal
+#  remote_user: vagrant
+#  roles:
+#    - titan_awx

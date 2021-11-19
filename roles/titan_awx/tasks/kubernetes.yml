@@ -82,13 +82,14 @@
     path: "{{ k3s_server_location }}/server/node-token"
   become: yes
 
+# This section not required and caused issues with azure server deployment
 # Set server to master IP instead of localhost
-- name: Replace https://localhost:6443 with https://k3s_master-ip:6443 in main config
-  command: >-
-    k3s kubectl config set-cluster default
-      --server=https://{{ k3s_master_ip }}:6443
-  changed_when: true
-  become: yes
+#- name: Replace https://localhost:6443 with https://k3s_master-ip:6443 in main config
+#  command: >-
+#    k3s kubectl config set-cluster default
+#      --server=https://{{ k3s_master_ip }}:6443
+#  changed_when: true
+#  become: yes
 
 # Create User Config Directory
 - name: Create directory .kube

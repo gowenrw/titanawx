@@ -10,11 +10,25 @@
 [titanawx_cent8]
 192.168.65.13 ansible_ssh_user=vagrant ansible_ssh_private_key_file=./titan.titantst.private_key
 
+# Azure server details
+# "hardwareProfile":
+#    "vmSize": "Standard_A4_v2" (4 vCPUs, 8 GiB Memory)
+# "imageReference":
+#    "publisher": "canonical",
+#    "offer": "0001-com-ubuntu-server-focal", (Ubuntu Server 20.04 From Marketplace)
+#    "sku": "20_04-lts"
+# Set up an SSH key pair and used a basic dynamic public IP tied to a DNS name
+# Opened inbound NSG rules for my home IP to access it using port 22
+# Update the details below with your server DNS name and key file location
+[titanawx_azure]
+titanawx.yourcloud.ninja ansible_ssh_user=azureuser ansible_ssh_private_key_file=./titan.alt_bier_az_key.pem
+
 # Titan group
 [titan:children]
 titanawx_focal
 titantst
 titanawx_cent8
+titanawx_azure
 
 # Variables that will be applied to all servers
 [titan:vars]
