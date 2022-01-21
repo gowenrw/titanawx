@@ -51,8 +51,75 @@ ansible-galaxy collection install community.kubernetes
 I created the following files to help implement AWX using ansible.
 
 * ./roles/titan_awx/* - the role that will install and setup AWX
+* ./roles/titan/* - a role to setup a simple ansible core platform to use for deploying AWX from
 * titan.playbook.yml - the ansible playbook that calls the "titan_awx" role
 * titan.inventory - the ansible inventory file I use with the playbook
 * titan.run_playbook.sh - a bash script for installing collection and running the playbook
 * titan.test.sh - a bash script for testing the inventory file using ansible ping
-* xcodecopy.sh - a bash script that copies this code from within a local ansible control box
+* xcodecopy.sh - a bash script that copies this code from within a local ansible core control box
+
+
+## Local collections and galaxy roles hidden
+
+For ease of use I will be storing ansible collections in the local project directory ansible_collections and ansible galaxy roles in the local directory ansible_galaxy.
+
+Since I do not want these stored in my repository the .gitignore file prevents their inclusion.
+
+To ensure I know what I have installed between machines I have created a requirements file to load them again.
+
+This will install galaxy collections:
+```
+ansible-galaxy collection install -r roles/requirements.yml
+```
+
+This will install galaxy roles:
+```
+ansible-galaxy role install -r roles/requirements.yml
+```
+
+## Azure Ansible Galaxy Collection
+
+The Azure Ansible Galaxy Collection is named azcollection ans is available via galaxy.
+
+This can be installed via a requirements.yml file like this one
+```
+collections:
+  - name: azure.azcollection
+    version: latest
+```
+
+Or it can be installed from the command line
+```
+ansible-galaxy collection install azure.azcollection
+```
+
+In either case you may need to install required python files.
+This list of python requirements is listed in a file in the collection named requirements-azure.txt
+```
+<path-to-your>/ansible_collections/azure/azcollection/requirements-azure.txt
+```
+
+You can use pip to install them from this file
+```
+pip install -r requirements-azure.txt
+```
+
+## Azure credentials
+
+Created an azure service principle for ansible.
+Will need to pass the following to ansible azure modules
+```
+AZURE_SUBSCRIPTION_ID=<SubscriptionID>
+AZURE_CLIENT_ID=<ApplicationId>
+AZURE_SECRET=<Password>
+AZURE_TENANT=<TenantID>
+```
+
+This can be done via the shell or via a file named ~/.azure/credentials with the following
+```
+[default]
+subscription_id=xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+client_id=xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+secret=xxxxxxxxxxxxxxxxx
+tenant=xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```

@@ -1,0 +1,10 @@
+galaxy_info:
+  role_name: titan_awx
+  author: alt_bier
+  description: This role will set up all the basics I need on an Ubuntu focal 20.04 server
+  company: Fellowship of the Ring
+  license: MIT
+  min_ansible_version: 2.9
+  galaxy_tags: []
+dependencies: []
+collections: []

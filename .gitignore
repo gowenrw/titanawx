@@ -49,6 +49,8 @@ boxes/*
 #################
 *.retry
 /ansible_galaxy/
+/ansible_collections/
+.ansible-vault.private_key
 
 # Key Files #
 #################

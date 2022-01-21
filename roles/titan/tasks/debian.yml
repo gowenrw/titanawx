@@ -1,0 +1,144 @@
+---
+# tasks file for base - debian systems
+
+#
+# Make sure system is up to date
+- name: Do apt-get update
+  apt: update_cache=yes
+  changed_when: False
+  become: yes
+
+- name: Check if there are packages available to be installed/upgraded
+  command: /usr/lib/update-notifier/apt-check --package-names
+  register: packages
+  changed_when: False
+  become: yes
+
+- name: Upgrade all packages to the latest version
+  apt: upgrade=dist
+  when: packages.stderr != ""
+  become: yes
+
+#
+# Reboot tasks - might need a reboot after updates
+#- include_tasks: debian-reboot.yml
+
+#
+# Install basic tools - these already exist in many cases, just making sure
+- name: Install htop
+  action: apt name=htop state=present update_cache=no
+  become: yes
+- name: Install git
+  action: apt name=git state=present update_cache=no
+  become: yes
+- name: Install vim
+  action: apt name=vim state=present update_cache=no
+  become: yes
+- name: Install wget
+  action: apt name=wget state=present update_cache=no
+  become: yes
+- name: Install curl
+  action: apt name=curl state=present update_cache=no
+  become: yes
+- name: Install net-tools
+  action: apt name=net-tools state=present update_cache=no
+  become: yes
+- name: Install locales
+  action: apt name=locales state=present update_cache=no
+  become: yes
+- name: Install bzip2
+  action: apt name=bzip2 state=present update_cache=no
+  become: yes
+- name: Install iputils-ping
+  action: apt name=iputils-ping state=present update_cache=no
+  become: yes
+- name: Install traceroute
+  action: apt name=traceroute state=present update_cache=no
+  become: yes
+- name: Install putty-tools
+  action: apt name=putty-tools state=present update_cache=no
+  become: yes
+
+#
+# Make sure Python is installed
+#- name: Install python v2
+#  action: apt name=python-minimal state=present update_cache=no
+#  become: yes
+- name: Install python v3
+  action: apt name=python3-minimal state=present update_cache=no
+  become: yes
+
+#
+# Python Virtual Environment
+- name: Install Python3 Virtual Environment
+  action: apt name=python3-virtualenv state=present update_cache=no
+  become: yes
+
+#
+# Pip installs a ton of dependencies so only uncomment this section if needed
+#- name: Install python pip v2
+#  action: apt name=python-pip state=present update_cache=no
+#  become: yes
+- name: Install python pip v3
+  action: apt name=python3-pip state=present update_cache=no
+  become: yes
+
+#
+# Install Ansible
+- name: Install Ansible
+  action: apt name=ansible state=present update_cache=no
+  become: yes
+
+#
+# Install some optional tools I like to use
+- name: Install aptitude
+  action: apt name=aptitude state=present update_cache=no
+  become: yes
+- name: Install build-essential
+  action: apt name=build-essential state=present update_cache=no
+  become: yes
+#- name: Install nload
+#  action: apt name=nload state=present update_cache=no
+#  become: yes
+#- name: Install iftop
+#  action: apt name=iftop state=present update_cache=no
+#  become: yes
+#- name: Install vnstat
+#  action: apt name=vnstat state=present update_cache=no
+#  become: yes
+
+#
+# Install packages required by AWX that I don't already install above
+- name: Install jq
+  action: apt name=jq state=present update_cache=no
+  become: yes
+#- name: Install docker.io
+#  action: apt name=docker.io state=present update_cache=no
+#  become: yes
+#- name: Install Docker Python Module via pip
+#  pip:
+#    name: docker
+#  become: yes
+#- name: adding existing user {{ ansible_user }} to group docker
+#  user:
+#    name: "{{ ansible_user }}"
+#    groups: docker
+#    append: yes
+#  become: yes
+- name: Install OpenShift Python Module via pip
+  pip:
+    name: openshift
+  become: yes
+
+#
+# Reboot tasks - might need a reboot after role tasks
+#- include_tasks: debian-reboot.yml
+
+# This dumps a shit ton of info about the host
+#- debug: msg="{{ hostvars[inventory_hostname] }}"
+# This refines the above
+#- debug: msg="{{ hostvars[inventory_hostname]['group_names'] }}"
+# This prints the inventory_hostname which may be an IP or DNS name
+#- debug: msg="{{ inventory_hostname }}"
+# This prints the ansible_hostname which is derived from the server hostname
+#- debug: msg="{{ ansible_hostname }}"

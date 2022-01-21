@@ -15,7 +15,7 @@ servers=[
     :vram => 16,
     :cpu => 4,
     :fwdguest => 80,
-    :fwdhost => 8081,
+    :fwdhost => 8081
   },
   {
     :hostname => "titantst",
@@ -27,7 +27,7 @@ servers=[
     :vram => 16,
     :cpu => 1,
     :fwdguest => 80,
-    :fwdhost => 8082,
+    :fwdhost => 8082
   },
   {
     :hostname => "titanawx-cent8",
@@ -39,7 +39,19 @@ servers=[
     :vram => 16,
     :cpu => 4,
     :fwdguest => 80,
-    :fwdhost => 8083,
+    :fwdhost => 8083
+  },
+  {
+    :hostname => "titan",
+    :log => "console-titan.log",
+    :ip => "192.168.65.10",
+    :box => "ubuntu-2004-server-amd64",
+    :boxurl => "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64-vagrant.box",
+    :ram => 8192,
+    :vram => 16,
+    :cpu => 2,
+    :fwdguest => 80,
+    :fwdhost => 8080
   }
 ]
 #

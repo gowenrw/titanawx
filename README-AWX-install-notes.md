@@ -331,3 +331,5 @@ sudo apt update && sudo apt -y upgrade
 sudo apt -y install ansible putty-tools python3-pip
 sudo pip install openshift
 ```
+
+Working on a separate titan role to allow for the installation of just ansible then running the role to install a number of other packages other than the bare minimum above.  In essence this role should make a nice ansible core platform.
